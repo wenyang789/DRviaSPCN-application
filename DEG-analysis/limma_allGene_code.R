@@ -66,6 +66,7 @@ head(design)
 rownames(design) <- colnames(expr_data)
 head(design)
 
+
 # Constructing contrast matrix ----
 # The benefit of this step is to focus more on the differences between the normal and cancer groups, rather than comparing all groups pairwise.
 # Comparisons within the cancer/normal group are unnecessary.
@@ -73,6 +74,7 @@ head(design)
 # Set the sample comparison method
 contrast.matrix <- makeContrasts(Cancer - Normal, levels = design)  # The contrast matrix is a matrix composed of 1 & -1.
 contrast.matrix
+
 
 # Linear hybrid simulation (KEY STEP of limma) ----
 
@@ -82,6 +84,7 @@ fit2 <- contrasts.fit(fit, contrast.matrix)
 
 # Use empirical Bayes to adjust the variance part in the t-test to obtain the differential expression results
 fit2 <- eBayes(fit2)
+
 
 # DEG results ----
 DEG <- topTable(fit2, coef = 1,n = Inf,sort.by="logFC")
