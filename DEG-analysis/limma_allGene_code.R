@@ -1,15 +1,18 @@
-## 准备环节 --------------------------------------------------------------------
-# 载入R包，设置参数，其中job变量用于项目输出文件前缀标识，可以自定义修改。
-# getwd()
-# setwd("/Users/wendy/Desktop/final_edition/limma_allGene")
+# Preparation ----
+getwd()
+setwd("/Users/wendy_1/DRviaSPCN-application/DEG-analysis")
+
+# Set parameters
 options(stringsAsFactors = F)
-rm(list=ls()) # 清空变量
-job <- "UCEC"
+rm(list=ls())  # Clear the variables
+job <- "UCEC"  # Set "UCEC" as an example
+
+# Load libraries
 library(limma)
-library(ggplot2) # 用于绘制火山图
+library(ggplot2)
 library(ggVolcano) 
 
-## 整理需要循环的所有癌症和变量
+# Below list other cancer data available on TCGA database.
 # ValidRawData <- list('BLCA_HiSeqV2.csv', 'BRCA_HiSeqV2.csv', 'CESC_HiSeqV2.csv', 'CHOL_HiSeqV2.csv', 
 #                      'COAD_HiSeqV2.csv', 'COADREAD_HiSeqV2.csv', 'ESCA_HiSeqV2.csv', 'HNSC_HiSeqV2.csv', 
 #                      'KICH_HiSeqV2.csv', 'KIRC_HiSeqV2.csv', 'KIRP_HiSeqV2.csv', 'LIHC_HiSeqV2.csv', 
@@ -32,54 +35,56 @@ library(ggVolcano)
 #             'SKCM', 'STAD', 'THCA', 'THYM', 
 #             'UCEC')
 
-# for (n in 1:25) {
-#   job <- job_names[[n]]
   
-## 数据导入 --------------------------------------------------------------------
-# 导入样本信息和表达量数据，然后进行删除表达量之和为0基因、log2化、替换异常值等步骤，得到原始数据矩阵。
+# Reading data ----
+
+# Read the TPM raw expression data with row × col = gene × samples
 expr_data <- read.csv("UCEC_HiSeqV2.csv", 
                     header = TRUE, sep = "", 
                     stringsAsFactors = FALSE, 
-                    check.names = FALSE) #输入文件TPM原始值，行名是基因，列名是样本
-# expr_data <- as.numeric(expr_data)
-expr_data <- expr_data[which(rowSums(expr_data)!=0),] #删除表达量为0的基因
-expr_data = log2(expr_data) #log化处理
-expr_data[expr_data == -Inf] = 0 #将log化后的负无穷值替换为0
+                    check.names = FALSE)
+
+# Delete genes that have no expression
+expr_data <- expr_data[which(rowSums(expr_data)!=0),]
+
+# Perform log2 transformation and replace negative infinity values with 0
+expr_data = log2(expr_data)
+expr_data[expr_data == -Inf] = 0
 head(expr_data)
+
+# Read group labels of samples
 group<-read.csv("UCEC_experiment.csv",
-                header = T, sep = "") #输入文件，样本信息表，包含分组信息
+                header = T, sep = "")
 head(group)
-# tutorial: extract the summarized experiment object.
-# table(colData(data)$sample_type)
 
-## 构建分组矩阵--design --------------------------------------------------------
-# 根据样本的分组信息，构建分组矩阵，最终得到的design矩阵由0和1构成，为斜对角矩阵。
-design <- model.matrix(~0+factor(group$experiment))
+
+# Constructing grouping matrix (design matrix) ----
+design <- model.matrix(~0+factor(group$experiment))  # The design matrix is composed of 0 & 1 and is a diagonal matrix.
 head(design)
-
 colnames(design) <- levels(factor(group$experiment))
 head(design)
 rownames(design) <- colnames(expr_data)
 head(design)
 
-## 构建比较矩阵--contrast ------------------------------------------------------
-# 这一步的好处是更加focus在normal和cancer组之间的差异，而不是所有的组之间的两两比较（e.g.cancer/normal组内部的比较是不必要的）
-# 设置样本的比较方式，这里为CK对照比HT处理，该步骤生成的文件为1和-1构成的矩阵。
-contrast.matrix <- makeContrasts(Cancer - Normal, levels = design) #根据实际的样本分组修改，这里对照组CK，处理组HT
+# Constructing contrast matrix ----
+# The benefit of this step is to focus more on the differences between the normal and cancer groups, rather than comparing all groups pairwise.
+# Comparisons within the cancer/normal group are unnecessary.
+
+# Set the sample comparison method
+contrast.matrix <- makeContrasts(Cancer - Normal, levels = design)  # The contrast matrix is a matrix composed of 1 & -1.
 contrast.matrix
 
-## 线性混合模拟-----------------------------------------------------------------
-# 该步骤是limma包的核心步骤，首先使用lmFit函数进行非线性最小二乘法分析，然后用经验贝叶斯调整t-test中方差部分，得到差异表达结果。
-fit <- lmFit(expr_data,design) #非线性最小二乘法
-fit2 <- contrasts.fit(fit, contrast.matrix)
-fit2 <- eBayes(fit2)#用经验贝叶斯调整t-test中方差的部分
+# Linear hybrid simulation (KEY STEP of limma) ----
 
-## allGene =====================================================================
+# Perform nonlinear least squares analysis
+fit <- lmFit(expr_data,design)
+fit2 <- contrasts.fit(fit, contrast.matrix)
+
+# Use empirical Bayes to adjust the variance part in the t-test to obtain the differential expression results
+fit2 <- eBayes(fit2)
+
+# DEG results ----
 DEG <- topTable(fit2, coef = 1,n = Inf,sort.by="logFC")
 DEG <- na.omit(DEG)
 write.csv(DEG, paste0(job,"_","allGene.csv"))
-# 最终生成的DEG文件包含以下几列信息：
-# > colnames(DEG)
-# [1] "logFC"     "AveExpr"   "t"         "P.Value"   "adj.P.Val" "B"        
-# [7] "regulate"  "Genes" 
-# DEG
+colnames(DEG)  # Check the column names of the result table.
