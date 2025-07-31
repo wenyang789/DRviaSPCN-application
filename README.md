@@ -39,7 +39,7 @@ We applied the **LIMMA** package for differential expression analysis:
 - Heatmaps using `pheatmap`
 
 🖼️ Method overview:
-![DEG Analysis Overview](/Users/wendy_1/Github/DRviaSPCN-application/fig/DEG-analysis.png)
+![DEG Analysis Overview](./fig/DEG-analysis.png)
 
 ---
 
@@ -68,7 +68,7 @@ We used **DRviaSPCN**, a software tool for **drug repurposing in cancer**, based
 Heatmaps were generated using the `Disease2SPheatmap` function to visualize significant subpathways (p < 0.05).
 
 🖼️ Method overview:
-![Drug Repurposing Workflow](/Users/wendy_1/Github/DRviaSPCN-application/fig/Drug_repurposing_workflow.png)
+![Drug Repurposing Workflow](./fig/Drug_repurposing_workflow.png)
 
 ---
 
@@ -88,7 +88,7 @@ If the pipeline runs successfully, you should obtain:
 🌐 Explore more at: [https://awi.cuhk.edu.cn/DrugRepoBank](https://awi.cuhk.edu.cn/DrugRepoBank)
 
 🖼️ Website overview:
-![Website main functions](/Users/wendy_1/Github/DRviaSPCN-application/fig/DRB_functions.png)
+![Website main functions](./fig/DRB_functions.png)
 
 ---
 
